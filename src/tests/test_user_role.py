@@ -3,6 +3,7 @@ from src.postgres.models.user import User
 from src.postgres.models.role import Role
 from src.postgres.models.user_role import UserRole
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 
 # Тесты для Role
@@ -12,11 +13,8 @@ async def test_create_role(db_session):
     db_session.add(role)
     await db_session.commit()
     await db_session.refresh(role)
-    result = await db_session.execute(
-        select(Role).where(Role.id == role.id)
-    )
-    fetched = result.scalar_one()
-    assert fetched.role_name == "Соискатель"
+    result = await db_session.get(Role, role.id)
+    assert result.role_name == "Соискатель"
 
 
 # Тесты для UserRole
@@ -25,14 +23,15 @@ async def test_create_user_role(db_session, test_user, test_role):
     user_role = UserRole(user_id=test_user.id, role_id=test_role.id)
     db_session.add(user_role)
     await db_session.commit()
-
+    await db_session.refresh(user_role)
     result = await db_session.execute(
         select(UserRole).where(
             UserRole.user_id == test_user.id, UserRole.role_id == test_role.id
         )
     )
-    assert result.scalar_one().user_id == test_user.id
-    assert result.scalar_one().role_id == test_role.id
+    fetched_role = result.scalar()
+    assert fetched_role.user_id == test_user.id
+    assert fetched_role.role_id == test_role.id
 
 
 @pytest.mark.asyncio
@@ -40,7 +39,15 @@ async def test_user_role_relationship(db_session, test_user, test_role):
     user_role = UserRole(user_id=test_user.id, role_id=test_role.id)
     db_session.add(user_role)
     await db_session.commit()
-
-    user = await db_session.get(User, test_user.id)
-    assert len(user.roles) == 1
-    assert user.roles[0].role_name == test_role.role_name
+    await db_session.refresh(user_role)
+    await db_session.refresh(test_user)
+    # Используем joinedload для предварительной загрузки user и role
+    stmt = (
+        select(User)
+        .where(User.id == test_user.id)
+        .options(joinedload(User.user_roles), joinedload(User.user_roles))
+    )
+    result = await db_session.execute(stmt)
+    fetched_user = result.unique().scalar_one()
+    assert len(fetched_user.user_roles) == 1
+    assert fetched_user.user_roles[0].role.role_name == test_role.role_name

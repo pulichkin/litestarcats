@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import ForeignKey
-from sqlalchemy import Index, Enum as SQLAlchemyEnum
+from sqlalchemy import Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from litestar.plugins.sqlalchemy import base
 

@@ -7,7 +7,7 @@ from src.postgres.models.educational_institution import EducationalInstitution
 async def test_create_educational_institution(db_session):
     institution = EducationalInstitution(
         institution_name="New University of LiteStar Cats",
-        institution_type="College",
+        institution_type="Университет",
         location="New Cat Town",
     )
     db_session.add(institution)
@@ -15,4 +15,4 @@ async def test_create_educational_institution(db_session):
 
     result = await db_session.get(EducationalInstitution, institution.id)
     assert result.institution_name == "New University of LiteStar Cats"
-    assert result.institution_type == "College"
+    assert result.institution_type == "Университет"
