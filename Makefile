@@ -22,6 +22,12 @@ format:
 test:
 	uv run pytest
 
+test-coverage:
+	uv run coverage run -m pytest
+
+test-coverage-report:
+	uv run coverage report --show-missing
+
 check-alembic:
 	@command -v alembic >/dev/null 2>&1 || { echo "Alembic is not installed. Run 'make install'."; exit 1; }
 

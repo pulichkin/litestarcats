@@ -6,12 +6,7 @@ from typing import Optional
 
 
 InstitutionTypeEnum = SQLAlchemyEnum(
-    "Университет",
-    "Институт",
-    "Колледж",
-    "Школа",
-    "Курс",
-    name="institution_type_enum"
+    "Университет", "Институт", "Колледж", "Школа", "Курс", name="institution_type_enum"
 )
 
 

@@ -30,12 +30,18 @@ async def db_engine():
         )  # Создает все таблицы в базе данных с помощью Base.metadata.create_all.
     yield engine  # Выдает движок для использования в тестах.
     async with engine.begin() as conn:
-        await conn.run_sync(lambda sync_conn: base.UUIDAuditBase.metadata.drop_all(sync_conn, checkfirst=True))  # После завершения тестов удаляет все таблицы (Base.metadata.drop_all)
+        await conn.run_sync(
+            lambda sync_conn: base.UUIDAuditBase.metadata.drop_all(
+                sync_conn, checkfirst=True
+            )
+        )  # После завершения тестов удаляет все таблицы (Base.metadata.drop_all)
     await engine.dispose()  # и освобождает ресурсы движка (engine.dispose()).
+
 
 @pytest_asyncio.fixture
 async def async_session_maker(db_engine):
     return sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
+
 
 # Фикстура для сессии базы данных
 @pytest_asyncio.fixture
@@ -49,7 +55,7 @@ async def db_session(async_session_maker) -> AsyncSession:
 # Фикстуры для создания базовых объектов
 @pytest_asyncio.fixture
 async def test_user(db_session):
-    user = User(first_name="Мурзик", last_name="Котов", email="murzik@example.com")
+    user = User(first_name="Мурзик", last_name="Котов", email="murzik@example.com", "password"="12345")
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)

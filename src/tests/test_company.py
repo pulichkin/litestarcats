@@ -10,9 +10,9 @@ from msgspec import structs
 @pytest.mark.asyncio
 async def test_create_company(db_session: AsyncSession):
     company_data = CompanyCreate(
-            company_name="New LtCats Corp",
-            industry="Tech",
-            )
+        company_name="New LtCats Corp",
+        industry="Tech",
+    )
     company = Company(**structs.asdict(company_data))
 
     db_session.add(company)

@@ -1,0 +1,17 @@
+database:
+  host: 127.0.0.1
+  port: 5432
+  user: postgres
+  password: postgres
+  database_name: ltcats_test_db
+  #url: "postgresql+asyncpg://postgres:postgres@localhost/ltcats_test_db" local
+  url: "postgresql+asyncpg://postgres:postgres@localhost/ltcats_test_db" # docker
+  echo: true
+keydb:
+  host: 127.0.0.1
+  port: 6379
+  db: 0
+  url: "keydb://localhost:6379/0"
+jwt:
+  secret: "your-secret-key"
+  token_secret: "super-secret"
