@@ -1,6 +1,7 @@
 import asyncio
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from src.app import app
 from src.postgres.models.cv import CV
 from src.postgres.models.user import User
 from src.postgres.models.role import Role
@@ -8,10 +9,18 @@ from src.postgres.models.company import Company
 from src.postgres.models.educational_institution import EducationalInstitution
 from litestar.plugins.sqlalchemy import base
 from sqlalchemy.orm import sessionmaker
+from litestar import Litestar
+from litestar.testing import AsyncTestClient
 
 
 # Настройка тестовой БД
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost/ltcats_test_db"
+
+
+@pytest_asyncio.fixture
+async def test_client(db_session: AsyncSession) -> AsyncTestClient:
+    async with AsyncTestClient(app) as client:
+        yield client
 
 
 # Фикстура для движка базы данных
@@ -55,7 +64,12 @@ async def db_session(async_session_maker) -> AsyncSession:
 # Фикстуры для создания базовых объектов
 @pytest_asyncio.fixture
 async def test_user(db_session):
-    user = User(first_name="Мурзик", last_name="Котов", email="murzik@example.com", "password"="12345")
+    user = User(
+        first_name="Мурзик",
+        last_name="Котов",
+        email="murzik@example.com",
+        hashed_password="12345",
+    )
     db_session.add(user)
     await db_session.commit()
     await db_session.refresh(user)

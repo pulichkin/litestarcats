@@ -93,9 +93,12 @@
             <h3>WORK EXPERIENCE</h3>
             <table>
                 <tr>
-                    <th>Company</th>
-                    <th>Position</th>
-                    <th>Tech Stack</th>
+                    <th>Компания</th>
+                    <th>Должность</th>
+                    <th>Тип работы</th>
+                    <th>Начало работы</th>
+                    <th>Конец работы</th>
+                    <th>Описание</th>
                 </tr>
                 {% for cv in user.cvs %}
                 {%- for exp in cv.work_experiences %}
