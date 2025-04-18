@@ -56,7 +56,10 @@ async def test_education_relationship(db_session, test_cv, test_institution):
     stmt = (
         select(EducationalInstitution)
         .where(EducationalInstitution.id == test_institution.id)
-        .options(joinedload(EducationalInstitution.educations), joinedload(EducationalInstitution.educations))
+        .options(
+            joinedload(EducationalInstitution.educations),
+            joinedload(EducationalInstitution.educations),
+        )
     )
     result = await db_session.execute(stmt)
     fetched_insitution = result.unique().scalar_one()

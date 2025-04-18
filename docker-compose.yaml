@@ -1,15 +1,52 @@
 services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keydb:
+        condition: service_healthy
+    networks:
+      - litestarcats
   postgres:
-    image: postgres
+    image: postgres:latest
     container_name: postgres
     hostname: postgres
     ports:
       - 5432:5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ltcats_test_db
     volumes:
-      - "postgres-data:/var/lib/postgesql"
+      - "postgres-data:/var/lib/postgresql/data"
+    networks:
+      - litestarcats
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  keydb:
+    image: eqalpha/keydb:latest
+    container_name: keydb
+    ports:
+      - "6379:6379"
+    volumes:
+      - keydb_data:/data
+    restart: unless-stopped
+    networks:
+      - litestarcats
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 volumes:
   postgres-data:
+  keydb_data:
+    driver: local
+
+networks:
+  litestarcats:
+    driver: bridge

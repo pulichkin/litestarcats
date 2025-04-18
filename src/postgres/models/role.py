@@ -11,4 +11,3 @@ class Role(base.UUIDBase):
     role_name: Mapped[str] = mapped_column(
         RoleEnum, nullable=False, unique=True, index=True
     )
-

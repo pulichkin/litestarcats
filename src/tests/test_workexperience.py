@@ -51,7 +51,9 @@ async def test_work_experience_relationship(db_session, test_cv, test_company):
     stmt = (
         select(Company)
         .where(Company.id == test_company.id)
-        .options(joinedload(Company.work_experiences), joinedload(Company.work_experiences))
+        .options(
+            joinedload(Company.work_experiences), joinedload(Company.work_experiences)
+        )
     )
     result = await db_session.execute(stmt)
     fetched_company = result.unique().scalar_one()

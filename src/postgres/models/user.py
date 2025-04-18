@@ -12,6 +12,7 @@ class User(base.UUIDAuditBase):
     email: Mapped[str] = mapped_column(
         String(255), nullable=False, unique=True, index=True
     )
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     profile_photo_url: Mapped[Optional[str]] = mapped_column(String(255))
     user_roles: Mapped[list["UserRole"]] = relationship(back_populates="user")
     cvs: Mapped[list["CV"]] = relationship(back_populates="user")

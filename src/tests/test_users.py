@@ -14,6 +14,7 @@ async def test_create_user(db_session: AsyncSession):
         first_name="Васька",  # Имя котика
         last_name="Мурзиков",  # Фамилия котика
         email="vasyamurzikov@whiskers.com",  # Email котика
+        password="12345",  # Email котика
     )
     # Создаем объект пользователя из данных
     user = User(**structs.asdict(user_data))
@@ -30,3 +31,15 @@ async def test_create_user(db_session: AsyncSession):
     # Проверяем, что имя и email пользователя соответствуют ожидаемым значениям
     assert fetched_user.first_name == "Васька"
     assert fetched_user.email == "vasyamurzikov@whiskers.com"
+
+
+@pytest.mark.asyncio
+async def test_login_invalid_credentials(db_session: AsyncSession):
+    user_data = UserCreate(first_name="Васька", last_name="Мурзиков", email="vasya@whiskers.com")
+    user = User(**structs.asdict(user_data), hashed_password=pwd_context.hash("wrong-pass"))
+    db_session.add(user)
+    await db_session.commit()
+
+    with pytest.raises(HTTPException) as exc:
+        await UserController().login(user_data, UsersRepository(session=db_session))
+    assert exc.value.status_code == 401

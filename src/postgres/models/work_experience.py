@@ -14,6 +14,7 @@ EmploymentTypeEnum = SQLAlchemyEnum(
     name="employment_type_enum",
 )
 
+
 class WorkExperience(base.UUIDAuditBase):
     __tablename__ = "work_experience"
     cv_id: Mapped[uuid.UUID] = mapped_column(

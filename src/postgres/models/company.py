@@ -4,6 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from litestar.plugins.sqlalchemy import base
 from typing import Optional
 
+
 class Company(base.UUIDAuditBase):
     __tablename__ = "companies"
     logo_url: Mapped[Optional[str]] = mapped_column(String(255))
