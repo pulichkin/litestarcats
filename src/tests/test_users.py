@@ -1,9 +1,13 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from src.models.users import UserCreate
+from src.models.users import UserCreate, UserLogin
 from src.postgres.models.user import User
 from msgspec import structs
+from passlib.context import CryptContext
+
+
+pwd_context = CryptContext(schemes=["sha256_crypt"])
 
 
 # Маркируем тест как асинхронный
@@ -14,10 +18,12 @@ async def test_create_user(db_session: AsyncSession):
         first_name="Васька",  # Имя котика
         last_name="Мурзиков",  # Фамилия котика
         email="vasyamurzikov@whiskers.com",  # Email котика
-        password="12345",  # Email котика
+        password="12345",  # Пароль котика
     )
     # Создаем объект пользователя из данных
-    user = User(**structs.asdict(user_data))
+    user_data = structs.asdict(user_data)
+    password = user_data.pop("password", None)
+    user = User(**user_data, hashed_password=pwd_context.hash(password))
     # Добавляем пользователя в сессию базы данных
     db_session.add(user)
     # Сохраняем изменения в базе данных
@@ -34,12 +40,26 @@ async def test_create_user(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_login_invalid_credentials(db_session: AsyncSession):
-    user_data = UserCreate(first_name="Васька", last_name="Мурзиков", email="vasya@whiskers.com")
-    user = User(**structs.asdict(user_data), hashed_password=pwd_context.hash("wrong-pass"))
+async def test_login_invalid_credentials(db_session: AsyncSession, test_client):
+    # 1. Создаем пользователя с некорректным паролем
+    user_data = UserCreate(
+        first_name="Васька",
+        last_name="Мурзиков",
+        email="vasyamurzikov@whiskers.com",
+        password="12345",
+    )
+    user_dict = structs.asdict(user_data)
+    password = user_dict.pop("password")
+    user = User(**user_dict, hashed_password=pwd_context.hash("wrong-pass"))
     db_session.add(user)
     await db_session.commit()
 
-    with pytest.raises(HTTPException) as exc:
-        await UserController().login(user_data, UsersRepository(session=db_session))
-    assert exc.value.status_code == 401
+    # Данные для логина
+    login_data = UserLogin(email=user.email, password=password)
+
+    # Отправка POST-запроса через тестовый клиент
+    response = await test_client.post("/users/login", json=structs.asdict(login_data))
+
+    # Проверка результата
+    assert response.status_code == 401
+    assert response.json().get("detail") == "Неверный email или пароль"

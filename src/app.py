@@ -38,10 +38,7 @@ logging_config = LoggingConfig(
     log_exceptions="always",  # Включить логирование исключений с трассировкой
 )
 
-env = Environment(
-        loader=PackageLoader("src"),
-        autoescape=select_autoescape()
-        )
+env = Environment(loader=PackageLoader("src"), autoescape=select_autoescape())
 
 
 async def provide_limit_offset_pagination(
@@ -94,7 +91,10 @@ jwt_auth = JWTAuth[User](
     retrieve_user_handler=retrieve_user_handler,
     token_secret=config.jwt.token_secret,
     algorithm="HS256",
-    exclude=["/users", "/schema"]
+    exclude=[
+        "/users/login",  # Исключение для логина
+        "/schema",  # Исключение для схемы API
+    ],
 )
 
 
@@ -131,7 +131,7 @@ app = Litestar(
     openapi_config=OpenAPIConfig(title="My API", version="1.0.0"),
     dependencies={
         "limit_offset": Provide(provide_limit_offset_pagination),
-        },
+    },
     plugins=[sqlalchemy_plugin, SQLAlchemySerializationPlugin()],
     logging_config=logging_config,
 )

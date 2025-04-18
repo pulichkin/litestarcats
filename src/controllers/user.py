@@ -38,8 +38,8 @@ async def provide_users_repo(db_session: AsyncSession) -> UsersRepository:
 class UserController(Controller):
     path = "/users"
     dependencies = {
-            "users_repo": Provide(provide_users_repo),
-            }
+        "users_repo": Provide(provide_users_repo),
+    }
 
     @get(path="/", return_dto=MsgspecDTO[UserRead])
     async def list_users(
@@ -58,18 +58,20 @@ class UserController(Controller):
 
     @post("/login", signature_types=[User])  # Отключаем защиту для логина
     async def login(
-            self,
-            data: UserLogin,
-            users_repo: UsersRepository,
-            ) -> dict:
+        self,
+        data: UserLogin,
+        users_repo: UsersRepository,
+    ) -> dict:
         user = await users_repo.get_one_or_none(email=data.email)
         if not user or not pwd_context.verify(data.password, user.hashed_password):
             raise HTTPException(status_code=401, detail="Неверный email или пароль")
         token = app.jwt_auth.create_token(identifier=str(user.id))
         return {"access_token": token, "token_type": "bearer"}
 
-    @post("/", return_dto=MsgspecDTO[UserRead])
-    async def create_user(self, data: UserCreate, users_repo: UsersRepository) -> UserRead:
+    @post("/", return_dto=MsgspecDTO[UserRead], exclude_from_auth=True)
+    async def create_user(
+        self, data: UserCreate, users_repo: UsersRepository
+    ) -> UserRead:
         user_data = structs.asdict(data)
         password = user_data.pop("password", None)
         user = await users_repo.add(
@@ -117,7 +119,9 @@ class UserController(Controller):
         await users_repo.session.commit()
 
     @get("/{user_id:uuid}/cv", media_type="text/html")
-    async def get_user_resume(self, user_id: UUID, users_repo: UsersRepository) -> Template:
+    async def get_user_resume(
+        self, user_id: UUID, users_repo: UsersRepository
+    ) -> Template:
         user = await users_repo.get(user_id)
         template = app.env.get_template("cv.html")
         return Template(template=template, context={"user": user})
